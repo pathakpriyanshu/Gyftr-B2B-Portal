@@ -11,6 +11,9 @@ db.sqlite3-journal
 /media/
 /staticfiles/
 
+# Node (root orchestrator)
+node_modules/
+
 # Env
 .env
 

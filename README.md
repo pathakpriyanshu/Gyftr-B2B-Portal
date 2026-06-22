@@ -1,10 +1,41 @@
-# Gyftr B2B Voucher Portal — Django Backend
+# Gyftr B2B Voucher Portal — Django Fullstack
 
-A complete **Python / Django** backend for the Gyftr B2B Gift Voucher Ordering &
-Download Portal. It is a drop-in replacement for the original Next.js/Node API
-layer: every endpoint, response shape (`{ ok, data }`), error code, OTP/JWT auth
-flow, pricing rule, Excel voucher file, and the Gyftr mock is reproduced exactly,
-so the existing Next.js frontend runs unchanged against it.
+A complete, **self-contained fullstack app**: the **Next.js frontend** (in
+[`./frontend`](./frontend)) and the **Python / Django backend** (this folder)
+live together and start with a **single command**. The original `B2B-Portal`
+folder (Next.js + Node backend) remains separate and untouched.
+
+The Django layer is a drop-in replacement for the original Next.js/Node API:
+every endpoint, response shape (`{ ok, data }`), error code, OTP/JWT auth flow,
+pricing rule, Excel voucher file, and the Gyftr mock is reproduced exactly, so
+the bundled frontend runs unchanged against it.
+
+## Run both with ONE command
+
+```bash
+# first time only — install backend + frontend deps:
+npm run install:all
+# (and once, set up the DB: npm run setup  — runs install + migrate + seed)
+
+# then every time — starts Django (:8000) AND Next.js (:3000) together:
+npm run dev
+```
+
+`npm run dev` uses `concurrently` to launch:
+- **backend** → `.venv\Scripts\python.exe manage.py runserver 8000`
+- **frontend** → `npm --prefix frontend run dev` (Next.js on `http://localhost:3000`)
+
+Open **http://localhost:3000**. The frontend's `frontend/.env.local` already
+points `NEXT_PUBLIC_API_URL` at `http://localhost:8000`, so it talks to Django.
+Press `Ctrl+C` once to stop both.
+
+> Prerequisite: the Python virtualenv must exist at `.venv` with deps installed
+> (see "Quick start" below). On macOS/Linux change the `dev:backend` /
+> `migrate` / `seed` script paths in `package.json` to `.venv/bin/python`.
+
+---
+
+## Backend details
 
 - **Framework:** Django 5.1 (plain views, no DRF — full control of the response envelope)
 - **DB:** SQLite by default (zero-config, real migrations + seed); Postgres/Supabase via `DATABASE_URL`

@@ -1,0 +1,19 @@
+{
+  "name": "b2b-portal-django-fullstack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-contained fullstack app: Next.js frontend (./frontend) + Django backend (this folder). Start both with one command.",
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend -c blue,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": ".venv\\Scripts\\python.exe manage.py runserver 8000",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "install:all": "npm install && npm --prefix frontend install",
+    "setup": "npm run install:all && npm run migrate && npm run seed",
+    "migrate": ".venv\\Scripts\\python.exe manage.py migrate",
+    "seed": ".venv\\Scripts\\python.exe manage.py seed_data"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

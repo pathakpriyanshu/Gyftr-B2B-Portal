@@ -35,6 +35,9 @@ def _safe_print(msg: str) -> None:
         sys.stdout.write(msg + "\n")
     except UnicodeEncodeError:
         sys.stdout.write(msg.encode(enc, "replace").decode(enc) + "\n")
+    # Flush so the message shows immediately on block-buffered consoles
+    # (e.g. the VS Code integrated terminal, which isn't a TTY).
+    sys.stdout.flush()
 
 
 def _strip_html(html: str) -> str:
