@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { motion } from "motion/react";
 import { Search, Store, Tag, ArrowRight, SlidersHorizontal } from "lucide-react";
 import { useBrands } from "@/lib/client/hooks";
 import { PageHeader } from "@/components/page-header";
+import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,13 +59,20 @@ export default function BrandsPage() {
                 key={c}
                 onClick={() => setCategory(c)}
                 className={cn(
-                  "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                  "relative shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
                   category === c
-                    ? "bg-primary text-primary-foreground"
+                    ? "text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-accent hover:text-primary"
                 )}
               >
-                {c}
+                {category === c && (
+                  <motion.span
+                    layoutId="brand-cat-pill"
+                    className="absolute inset-0 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  />
+                )}
+                <span className="relative z-10">{c}</span>
               </button>
             ))}
           </div>
@@ -87,29 +96,36 @@ export default function BrandsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <Stagger
+          key={category}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          gap={0.04}
+          delayChildren={0}
+        >
           {filtered.map((b) => (
-            <Link key={b.id} href={`/brands/${b.id}`}>
-              <Card className="group flex h-full flex-col p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:card-shadow-lg">
-                <div className="flex items-start justify-between">
-                  <BrandLogo name={b.name} src={b.logoUrl} className="h-14 w-14 text-xl" />
-                  {b.discountPct > 0 && (
-                    <Badge variant="success" className="gap-1">
-                      <Tag className="h-3 w-3" />
-                      {b.discountPct}% off
-                    </Badge>
-                  )}
-                </div>
-                <h3 className="mt-3 line-clamp-1 font-semibold">{b.name}</h3>
-                <p className="text-xs text-muted-foreground">{b.category}</p>
-                <div className="mt-auto flex items-center gap-1 pt-3 text-sm font-medium text-primary">
-                  View denominations
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Card>
-            </Link>
+            <StaggerItem key={b.id} className="h-full" y={12}>
+              <Link href={`/brands/${b.id}`} className="block h-full">
+                <Card className="group flex h-full flex-col p-4 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:card-shadow-lg">
+                  <div className="flex items-start justify-between">
+                    <BrandLogo name={b.name} src={b.logoUrl} className="h-14 w-14 text-xl transition-transform duration-300 group-hover:scale-105" />
+                    {b.discountPct > 0 && (
+                      <Badge variant="success" className="gap-1">
+                        <Tag className="h-3 w-3" />
+                        {b.discountPct}% off
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="mt-3 line-clamp-1 font-semibold">{b.name}</h3>
+                  <p className="text-xs text-muted-foreground">{b.category}</p>
+                  <div className="mt-auto flex items-center gap-1 pt-3 text-sm font-medium text-primary">
+                    View denominations
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
+                </Card>
+              </Link>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
     </div>
   );

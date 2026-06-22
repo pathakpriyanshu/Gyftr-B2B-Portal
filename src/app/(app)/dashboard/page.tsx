@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "motion/react";
 import {
   Wallet,
   Receipt,
@@ -9,7 +10,6 @@ import {
   Activity,
   Store,
   LifeBuoy,
-  Settings,
   TrendingUp,
 } from "lucide-react";
 import { useDashboard } from "@/lib/client/hooks";
@@ -19,7 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { OrderStatusBadge } from "@/components/status-badge";
-import { formatINR, formatDate, cn } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { Stagger, StaggerItem, EASE } from "@/components/ui/motion";
+import { formatINR, formatNumber, formatDate, cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const user = useSession();
@@ -32,30 +34,50 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+        >
           <h1 className="text-2xl font-bold tracking-tight">
-            Welcome back, {firstName} 👋
+            Welcome back, {firstName}{" "}
+            <motion.span
+              className="inline-block"
+              style={{ transformOrigin: "70% 80%" }}
+              animate={{ rotate: [0, 18, -8, 16, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 1.8, ease: "easeInOut" }}
+            >
+              👋
+            </motion.span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Here's what's happening with {user.clientName} today.
+            Here&apos;s what&apos;s happening with {user.clientName} today.
           </p>
-        </div>
+        </motion.div>
         {canTransact && (
-          <Link href="/brands">
-            <Button size="lg">
-              <Plus className="h-4 w-4" /> Place New Order
-            </Button>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Link href="/brands">
+              <Button size="lg">
+                <Plus className="h-4 w-4" /> Place New Order
+              </Button>
+            </Link>
+          </motion.div>
         )}
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" gap={0.09}>
         <StatCard
           loading={isLoading}
           icon={Wallet}
           label="Wallet Balance"
-          value={stats ? formatINR(stats.walletBalance) : "—"}
+          value={stats ? <AnimatedNumber value={stats.walletBalance} format={(n) => formatINR(n)} /> : "—"}
           tone="primary"
           footer={
             <Link href="/wallet" className="text-primary hover:underline">
@@ -67,7 +89,9 @@ export default function DashboardPage() {
           loading={isLoading}
           icon={Receipt}
           label="Total Orders"
-          value={stats ? String(stats.totalOrders) : "—"}
+          value={
+            stats ? <AnimatedNumber value={stats.totalOrders} format={(n) => formatNumber(Math.round(n))} /> : "—"
+          }
           tone="secondary"
           footer={
             <span className="text-muted-foreground">
@@ -99,14 +123,14 @@ export default function DashboardPage() {
             )
           }
         />
-      </div>
+      </Stagger>
 
       {/* Quick actions */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <Stagger className="mt-4 grid gap-4 sm:grid-cols-3" gap={0.08} delayChildren={0.12}>
         <QuickAction href="/brands" icon={Store} title="Browse Brands" desc="300+ brands available" />
         <QuickAction href="/orders" icon={TrendingUp} title="Track Orders" desc="Status & history" />
         <QuickAction href="/support" icon={LifeBuoy} title="Support" desc="Get help fast" />
-      </div>
+      </Stagger>
 
       {/* Recent orders */}
       <div className="mt-8">
@@ -114,9 +138,9 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold">Recent Orders</h2>
           <Link
             href="/orders"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            className="group inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
-            View all <ArrowRight className="h-4 w-4" />
+            View all <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
 
@@ -157,9 +181,12 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => (
-                    <tr
+                  {orders.map((o, i) => (
+                    <motion.tr
                       key={o.id}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, ease: EASE, delay: i * 0.05 }}
                       className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/40"
                     >
                       <td className="px-5 py-3.5 font-semibold">{o.orderNumber}</td>
@@ -180,7 +207,7 @@ export default function DashboardPage() {
                           Details
                         </Link>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
@@ -213,20 +240,27 @@ function StatCard({
     success: "bg-success/10 text-success",
   };
   return (
-    <Card>
-      <CardContent className="pt-5">
-        <div className="flex items-start justify-between">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", tones[tone])}>
-            <Icon className="h-[18px] w-[18px]" />
+    <StaggerItem>
+      <Card className="group h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:card-shadow-lg">
+        <CardContent className="pt-5">
+          <div className="flex items-start justify-between">
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <div
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6",
+                tones[tone]
+              )}
+            >
+              <Icon className="h-[18px] w-[18px]" />
+            </div>
           </div>
-        </div>
-        <div className="mt-3 text-2xl font-bold tracking-tight">
-          {loading ? <Skeleton className="h-8 w-28" /> : value}
-        </div>
-        {footer && <div className="mt-2 text-xs">{footer}</div>}
-      </CardContent>
-    </Card>
+          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums">
+            {loading ? <Skeleton className="h-8 w-28" /> : value}
+          </div>
+          {footer && <div className="mt-2 text-xs">{footer}</div>}
+        </CardContent>
+      </Card>
+    </StaggerItem>
   );
 }
 
@@ -242,19 +276,21 @@ function QuickAction({
   desc: string;
 }) {
   return (
-    <Link href={href}>
-      <Card className="group transition-all hover:border-primary/30 hover:card-shadow-lg">
-        <CardContent className="flex items-center gap-4 pt-5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-foreground/70 transition-colors group-hover:bg-accent group-hover:text-primary">
-            <Icon className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold">{title}</p>
-            <p className="text-xs text-muted-foreground">{desc}</p>
-          </div>
-          <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-        </CardContent>
-      </Card>
-    </Link>
+    <StaggerItem>
+      <Link href={href}>
+        <Card className="group h-full transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:card-shadow-lg">
+          <CardContent className="flex items-center gap-4 pt-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-foreground/70 transition-colors duration-300 group-hover:bg-accent group-hover:text-primary">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold">{title}</p>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+            <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+          </CardContent>
+        </Card>
+      </Link>
+    </StaggerItem>
   );
 }

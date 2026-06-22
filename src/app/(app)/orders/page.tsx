@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { motion } from "motion/react";
 import { Receipt, Search, Plus, Package } from "lucide-react";
+import { EASE } from "@/components/ui/motion";
 import { useOrders } from "@/lib/client/hooks";
 import { useCanTransact } from "@/providers/session";
 import { PageHeader } from "@/components/page-header";
@@ -70,13 +72,20 @@ export default function OrdersPage() {
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={cn(
-                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                "relative shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
                 filter === f.value
-                  ? "bg-primary text-primary-foreground"
+                  ? "text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-accent hover:text-primary"
               )}
             >
-              {f.label}
+              {filter === f.value && (
+                <motion.span
+                  layoutId="orders-filter-pill"
+                  className="absolute inset-0 rounded-full bg-primary"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                />
+              )}
+              <span className="relative z-10">{f.label}</span>
             </button>
           ))}
         </div>
@@ -126,9 +135,12 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((o) => (
-                  <tr
+                {filtered.map((o, i) => (
+                  <motion.tr
                     key={o.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, ease: EASE, delay: Math.min(i, 10) * 0.04 }}
                     className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/40"
                   >
                     <td className="px-5 py-3.5 font-semibold">{o.orderNumber}</td>
@@ -162,7 +174,7 @@ export default function OrdersPage() {
                         Details
                       </Link>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>

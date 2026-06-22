@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import { Menu, ShoppingCart, LogOut, ChevronDown, User as UserIcon, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
@@ -62,14 +63,20 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <Link
           href="/cart"
-          className="relative flex h-10 w-10 items-center justify-center rounded-lg text-foreground/70 transition-colors hover:bg-muted"
+          className="group relative flex h-10 w-10 items-center justify-center rounded-lg text-foreground/70 transition-colors hover:bg-muted"
           aria-label="Cart"
         >
-          <ShoppingCart className="h-[18px] w-[18px]" />
+          <ShoppingCart className="h-[18px] w-[18px] transition-transform group-hover:scale-110" />
           {count > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            <motion.span
+              key={count}
+              initial={{ scale: 0.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 18 }}
+              className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+            >
               {count > 99 ? "99+" : count}
-            </span>
+            </motion.span>
           )}
         </Link>
 
@@ -83,11 +90,20 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
               <p className="text-sm font-semibold leading-tight">{user.fullName}</p>
               <p className="text-xs text-muted-foreground">{ROLE_LABEL[user.role]}</p>
             </div>
-            <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:block" />
+            <motion.span animate={{ rotate: menuOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="hidden sm:block">
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.span>
           </button>
 
+          <AnimatePresence>
           {menuOpen && (
-            <div className="absolute right-0 top-12 w-60 overflow-hidden rounded-xl border border-border bg-card card-shadow-lg animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.96 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              style={{ transformOrigin: "top right" }}
+              className="absolute right-0 top-12 w-60 overflow-hidden rounded-xl border border-border bg-card card-shadow-lg">
               <div className="border-b border-border p-4">
                 <p className="truncate text-sm font-semibold">{user.fullName}</p>
                 <p className="truncate text-xs text-muted-foreground">{user.email}</p>
@@ -106,8 +122,9 @@ export function Topbar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
                   Sign out
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

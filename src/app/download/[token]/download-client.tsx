@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   ShieldCheck,
   Mail,
   Download,
   FileSpreadsheet,
-  CheckCircle2,
   AlertTriangle,
   Lock,
 } from "lucide-react";
@@ -15,7 +15,8 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { OtpInput } from "@/components/ui/otp-input";
 import { PageLoader } from "@/components/ui/spinner";
-import { api, ApiClientError } from "@/lib/client/api";
+import { EASE } from "@/components/ui/motion";
+import { api, apiUrl, ApiClientError } from "@/lib/client/api";
 
 interface Info {
   orderNumber: string;
@@ -55,15 +56,10 @@ export function DownloadClient({ token }: { token: string }) {
   const sendOtp = async () => {
     setSending(true);
     try {
-      const d = await api.post<{ devOtp?: string }>(`/api/download/${token}/request-otp`);
+      await api.post(`/api/download/${token}/request-otp`);
       setStage("otp");
       setResendIn(30);
-      if (d.devOtp) {
-        toast.success(`OTP sent. Dev code: ${d.devOtp}`, { duration: 8000 });
-        setOtp(d.devOtp);
-      } else {
-        toast.success("We've emailed you a verification code.");
-      }
+      toast.success("We've emailed you a verification code.");
     } catch (e) {
       toast.error(e instanceof ApiClientError ? e.message : "Could not send OTP");
     } finally {
@@ -88,7 +84,7 @@ export function DownloadClient({ token }: { token: string }) {
   };
 
   const download = () => {
-    window.location.href = `/api/download/${token}/file`;
+    window.location.href = apiUrl(`/api/download/${token}/file`);
   };
 
   return (
@@ -101,8 +97,9 @@ export function DownloadClient({ token }: { token: string }) {
 
       <main className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
+          <AnimatePresence mode="wait">
           {error ? (
-            <Panel>
+            <Panel key="error">
               <div className="flex flex-col items-center text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                   <AlertTriangle className="h-7 w-7" />
@@ -112,11 +109,11 @@ export function DownloadClient({ token }: { token: string }) {
               </div>
             </Panel>
           ) : !info ? (
-            <Panel>
+            <Panel key="loading">
               <PageLoader label="Loading your order…" />
             </Panel>
           ) : !info.ready ? (
-            <Panel>
+            <Panel key="notready">
               <div className="flex flex-col items-center text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-warning/15 text-amber-700">
                   <Lock className="h-7 w-7" />
@@ -129,11 +126,16 @@ export function DownloadClient({ token }: { token: string }) {
               </div>
             </Panel>
           ) : stage === "landing" ? (
-            <Panel>
+            <Panel key="landing">
               <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 16 }}
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary"
+                >
                   <ShieldCheck className="h-7 w-7" />
-                </div>
+                </motion.div>
                 <h1 className="mt-4 text-xl font-bold">Verify to download your vouchers</h1>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   For security, we'll send a one-time code to{" "}
@@ -147,11 +149,16 @@ export function DownloadClient({ token }: { token: string }) {
               </Button>
             </Panel>
           ) : stage === "otp" ? (
-            <Panel>
+            <Panel key="otp">
               <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 16 }}
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary"
+                >
                   <Mail className="h-7 w-7" />
-                </div>
+                </motion.div>
                 <h1 className="mt-4 text-xl font-bold">Enter verification code</h1>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   Sent to <span className="font-semibold text-foreground">{info.email}</span>
@@ -174,11 +181,31 @@ export function DownloadClient({ token }: { token: string }) {
               </div>
             </Panel>
           ) : (
-            <Panel>
+            <Panel key="done">
               <div className="flex flex-col items-center text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15 text-success">
-                  <CheckCircle2 className="h-7 w-7" />
-                </div>
+                <motion.div
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 15 }}
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-success/15 text-success"
+                >
+                  <motion.svg
+                    viewBox="0 0 24 24"
+                    className="h-7 w-7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <motion.path
+                      d="M5 13l4 4L19 7"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ delay: 0.25, duration: 0.45, ease: "easeOut" }}
+                    />
+                  </motion.svg>
+                </motion.div>
                 <h1 className="mt-4 text-xl font-bold">Payment Verified</h1>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   Your gift vouchers are ready to download.
@@ -193,6 +220,7 @@ export function DownloadClient({ token }: { token: string }) {
               </p>
             </Panel>
           )}
+          </AnimatePresence>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             © {new Date().getFullYear()} Gyftr B2B Portal
@@ -205,7 +233,15 @@ export function DownloadClient({ token }: { token: string }) {
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-7 card-shadow-lg">{children}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -16, scale: 0.98 }}
+      transition={{ duration: 0.35, ease: EASE }}
+      className="rounded-2xl border border-border bg-card p-7 card-shadow-lg"
+    >
+      {children}
+    </motion.div>
   );
 }
 

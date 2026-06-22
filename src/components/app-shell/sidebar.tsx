@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 import { NAV_GROUPS, canSee } from "./nav";
 import { useSession } from "@/providers/session";
 import { useCart } from "@/store/cart";
 
-export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarContent({
+  onNavigate,
+  scope = "desktop",
+}: {
+  onNavigate?: () => void;
+  scope?: string;
+}) {
   const pathname = usePathname();
   const user = useSession();
   const count = useCart((s) => s.count());
@@ -41,23 +48,36 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                         href={item.href}
                         onClick={onNavigate}
                         className={cn(
-                          "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                           active
-                            ? "bg-accent text-primary"
+                            ? "text-primary"
                             : "text-foreground/70 hover:bg-muted hover:text-foreground"
                         )}
                       >
+                        {active && (
+                          <motion.span
+                            layoutId={`nav-active-${scope}`}
+                            className="absolute inset-0 rounded-lg bg-accent"
+                            transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                          />
+                        )}
                         <Icon
                           className={cn(
-                            "h-[18px] w-[18px] shrink-0",
+                            "relative z-10 h-[18px] w-[18px] shrink-0 transition-transform group-hover:scale-110",
                             active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                           )}
                         />
-                        <span className="flex-1">{item.label}</span>
+                        <span className="relative z-10 flex-1">{item.label}</span>
                         {item.cartBadge && count > 0 && (
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                          <motion.span
+                            key={count}
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                            className="relative z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground"
+                          >
                             {count > 99 ? "99+" : count}
-                          </span>
+                          </motion.span>
                         )}
                       </Link>
                     </li>

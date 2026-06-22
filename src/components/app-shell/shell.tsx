@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { SessionProvider } from "@/providers/session";
 import { Sidebar, SidebarContent } from "./sidebar";
 import { Topbar } from "./topbar";
+import { PageTransition } from "./page-transition";
 import { useCart } from "@/store/cart";
 import type { SessionUser } from "@/types";
 
@@ -43,7 +44,7 @@ export function AppShell({
               >
                 <X className="h-5 w-5" />
               </button>
-              <SidebarContent onNavigate={() => setDrawer(false)} />
+              <SidebarContent scope="mobile" onNavigate={() => setDrawer(false)} />
             </div>
           </div>
         )}
@@ -51,7 +52,9 @@ export function AppShell({
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onOpenSidebar={() => setDrawer(true)} />
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+            <div className="mx-auto w-full max-w-6xl">
+              <PageTransition>{children}</PageTransition>
+            </div>
           </main>
         </div>
       </div>

@@ -2,6 +2,19 @@
 
 import type { ApiResult } from "@/types";
 
+/**
+ * Base URL of the API backend. When `NEXT_PUBLIC_API_URL` is set (e.g. the
+ * Django backend at http://localhost:8000) all `/api/*` calls are sent there;
+ * otherwise they stay same-origin. Cookies are sent cross-origin via
+ * `credentials: "include"`.
+ */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+/** Resolve an app-relative `/api/...` path against the configured backend. */
+export function apiUrl(path: string): string {
+  return path.startsWith("/api") ? `${API_BASE}${path}` : path;
+}
+
 /** Typed fetch wrapper. Throws ApiClientError on non-ok responses. */
 export class ApiClientError extends Error {
   code?: string;
@@ -18,7 +31,8 @@ async function request<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetch(apiUrl(url), {
+    credentials: "include",
     ...options,
     headers: {
       ...(options.body && !(options.body instanceof FormData)
